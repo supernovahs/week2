@@ -4,17 +4,17 @@ const { ethers } = require("hardhat");
 const { groth16 } = require("snarkjs");
 
 function unstringifyBigInts(o) {
-    if ((typeof(o) == "string") && (/^[0-9]+$/.test(o) ))  {
+    if ((typeof (o) == "string") && (/^[0-9]+$/.test(o))) {
         return BigInt(o);
-    } else if ((typeof(o) == "string") && (/^0x[0-9a-fA-F]+$/.test(o) ))  {
+    } else if ((typeof (o) == "string") && (/^0x[0-9a-fA-F]+$/.test(o))) {
         return BigInt(o);
     } else if (Array.isArray(o)) {
         return o.map(unstringifyBigInts);
     } else if (typeof o == "object") {
-        if (o===null) return null;
+        if (o === null) return null;
         const res = {};
         const keys = Object.keys(o);
-        keys.forEach( (k) => {
+        keys.forEach((k) => {
             res[k] = unstringifyBigInts(o[k]);
         });
         return res;
@@ -39,7 +39,7 @@ describe("MerkleTree", function () {
             libraries: {
                 PoseidonT3: poseidonT3.address
             },
-          });
+        });
         merkleTree = await MerkleTree.deploy();
         await merkleTree.deployed();
     });
@@ -56,14 +56,14 @@ describe("MerkleTree", function () {
             "path_elements": ["2", node9, node13],
             "path_index": ["0", "0", "0"]
         }
-        const { proof, publicSignals } = await groth16.fullProve(Input, "circuits/circuit_js/circuit.wasm","circuits/circuit_final.zkey");
+        const { proof, publicSignals } = await groth16.fullProve(Input, "circuits/circuit_js/circuit.wasm", "circuits/circuit_final.zkey");
 
         const editedPublicSignals = unstringifyBigInts(publicSignals);
         const editedProof = unstringifyBigInts(proof);
         const calldata = await groth16.exportSolidityCallData(editedProof, editedPublicSignals);
-    
+
         const argv = calldata.replace(/["[\]\s]/g, "").split(',').map(x => BigInt(x).toString());
-    
+
         const a = [argv[0], argv[1]];
         const b = [[argv[2], argv[3]], [argv[4], argv[5]]];
         const c = [argv[6], argv[7]];
